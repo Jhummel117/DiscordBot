@@ -1,11 +1,15 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const blacklistSchema = new mongoose.Schema({
-  blackListedUsers: [String],
+const blackListSchema = new mongoose.Schema({
+  blackListedUsers: [{
+    userId: { type: String, required: true },
+    reason: { type: String },  // Optional: why the user was blacklisted
+    role: { type: String },  // The role the user had when blacklisted
+    kickDate: { type: Date },  // When the user was kicked
+    duration: { type: Number }  // Duration in days before the user is kicked
+  }],
+  createdAt: { type: Date, default: Date.now }
 });
 
-const blackListDB = mongoose.model("BlacklistUser", blacklistSchema);
-
-module.exports = {
-  blackListDB
-}
+const blackListDB = mongoose.model('BlackList', blackListSchema);
+module.exports = { blackListDB };
