@@ -1,33 +1,22 @@
-const blacklistSchema = require("../models/blacklistSchema");
-const { channelMention, roleMention, userMention } = require('discord.js');
+const blacklistSchema = require('../models/blacklistSchema');
+const { userMention } = require('discord.js');
 
-
-async function removeBlacklistDB(userid, userTag){
-    const userIdString = userid.toString();
-    const mentionedUser = userMention(userid);
+async function removeBlacklistDB(userId, userTag) {
+    const userIdString = userId.toString();
     const doc = await blacklistSchema.blackListDB.findOne();
-    const exist = await blacklistSchema.blackListDB.findOne({blackListedUsers: userIdString});
-    const mention = "insert method";
-    if(doc){
-        if(exist){
-            await blacklistSchema.blackListDB.updateOne({$pull: {blackListedUsers: userIdString}});
-            console.log(`User ${userTag} has been removed from the Blacklist.`);
-            const resultMessage = (`User ${mentionedUser.toString()} has been removed from the Blacklist.`);
-            return resultMessage;
-        }
-        else{
-            console.log(`User ${userIdString} is not in the Blacklist`);
-            const resultMessage = (`User ${mentionedUser.toString()} is not in the Blacklist`);
-            return resultMessage;
-        }
-    }
-    else{
-        const resultMessage = ("Blacklist does not exist");
-        console.log(resultMessage);
-        return resultMessage;
+    const exist = await blacklistSchema.blackListDB.findOne({ blackListedUsers: { $elemMatch: { userId: userIdString } } });
+
+    if (doc && exist) {
+        // Remove the user from the blacklist
+        await blacklistSchema.blackListDB.updateOne({ $pull: { blackListedUsers: { userId: userIdString } } });
+        console.log(`User ${userTag} has been removed from the blacklist.`);
+        return `User ${userMention(userId)} has been removed from the blacklist.`;
+    } else {
+        console.log(`User ${userTag} was not found in the blacklist.`);
+        return `User ${userMention(userId)} is not on the blacklist.`;
     }
 }
 
 module.exports = {
     removeBlacklistDB
-} 
+};
